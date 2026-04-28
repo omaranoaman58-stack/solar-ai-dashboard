@@ -1,0 +1,73 @@
+import pandas as pd
+import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+# -----------------------------
+# 1️⃣ قراءة البيانات
+# -----------------------------
+
+data = pd.read_csv(r"C:\Users\admin\Documents\اتصالات\تالتة اتصالات\Premium Project\The project\Final Numbers\ULTIMATE_CLEAN_TRAINING_DATA.csv")
+
+print("Dataset Loaded Successfully")
+print(data.head())
+
+# -----------------------------
+# 2️⃣ اختيار الخصائص
+# -----------------------------
+
+features = [
+"Latitude",
+"V_PV",
+"V_Batt",
+"Amp",
+"Power_W",
+"Ideal_Power_W",
+"Temp_C",
+"UV_Ideal",
+"UV_Actual",
+"Dust_Ratio",
+"V_Diff",
+"SOC_Percentage"
+]
+
+X = data[features]
+y = data["Label"]
+
+# -----------------------------
+# 3️⃣ تقسيم البيانات
+# -----------------------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# -----------------------------
+# 4️⃣ تدريب Random Forest
+# -----------------------------
+
+print("Training Random Forest Predictor...")
+
+rf = RandomForestClassifier(
+    n_estimators=200,
+    max_depth=12,
+    random_state=42
+)
+
+rf.fit(X_train, y_train)
+
+# -----------------------------
+# 5️⃣ تقييم النموذج
+# -----------------------------
+
+accuracy = rf.score(X_test, y_test)
+
+print("Random Forest Accuracy:", accuracy)
+
+# -----------------------------
+# 6️⃣ حفظ الموديل
+# -----------------------------
+
+joblib.dump(rf, "rf_predictor.pkl")
+
+print("Random Forest model saved!")

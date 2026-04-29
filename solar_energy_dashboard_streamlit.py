@@ -97,6 +97,7 @@ if file:
         else:
             st.error("❌ Model file not found! Upload best_model.pkl to GitHub")
             st.stop()
+            st.write("Model Loaded Successfully ✅")
 
         input_data = {}
 

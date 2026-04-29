@@ -7,8 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 # 1️⃣ قراءة البيانات
 # -----------------------------
 
-data = pd.read_csv(r"C:\Users\admin\Documents\اتصالات\تالتة اتصالات\Premium Project\The project\Final Numbers\ULTIMATE_CLEAN_TRAINING_DATA.csv")
-
+data = pd.read_csv("ULTIMATE_CLEAN_TRAINING_DATA.csv")
 print("Dataset Loaded Successfully")
 print(data.head())
 

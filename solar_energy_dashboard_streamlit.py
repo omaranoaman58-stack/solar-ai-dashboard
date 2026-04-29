@@ -97,7 +97,7 @@ if file:
     st.subheader("🤖 Predict Fault")
 
     try:
-      model = joblib.load("rf_predictor.pkl")
+        model = joblib.load("rf_predictor.pkl")
 
         input_data = {}
         features = [

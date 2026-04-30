@@ -92,10 +92,10 @@ if file:
 
     try:
         # تحميل الموديل
-        if os.path.exists("best_model.pkl"):
-            model = joblib.load("best_model.pkl")
+        if os.path.exists("rf_predictor.pkl"):
+            model = joblib.load("rf_predictor.pkl")
         else:
-            st.error("❌ Model file not found! Upload best_model.pkl to GitHub")
+            st.error("❌ Model file not found! Upload rf_predictor.pkl to GitHub")
             st.stop()
 
         input_data = {}

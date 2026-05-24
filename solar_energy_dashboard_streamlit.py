@@ -101,53 +101,13 @@ if file:
         input_data = {}
 
         features = [
+            "Latitude","V_PV","V_Batt","Amp","Power_W",
+            "Ideal_Power_W","Temp_C","UV_Ideal","UV_Actual",
+            "Dust_Ratio","V_Diff","SOC_Percentage"
+        ]
 
-    # الأصلية
-    "Latitude",
-    "V_PV",
-    "V_Batt",
-    "Amp",
-    "Power_W",
-    "Ideal_Power_W",
-    "Temp_C",
-    "UV_Ideal",
-    "UV_Actual",
-    "Dust_Ratio",
-    "V_Diff",
-    "SOC_Percentage",
 
-    # Sequence Features
-    "V_PV_prev1",
-    "V_PV_prev2",
-    "V_PV_diff1",
-    "V_PV_avg3",
-
-    "V_Batt_prev1",
-    "V_Batt_prev2",
-    "V_Batt_diff1",
-    "V_Batt_avg3",
-
-    "Amp_prev1",
-    "Amp_prev2",
-    "Amp_diff1",
-    "Amp_avg3",
-
-    "Power_W_prev1",
-    "Power_W_prev2",
-    "Power_W_diff1",
-    "Power_W_avg3",
-
-    "Temp_C_prev1",
-    "Temp_C_prev2",
-    "Temp_C_diff1",
-    "Temp_C_avg3",
-
-    "UV_Actual_prev1",
-    "UV_Actual_prev2",
-    "UV_Actual_diff1",
-    "UV_Actual_avg3"
-]
-
+    
         cols = st.columns(3)
 
         for i, feature in enumerate(features):

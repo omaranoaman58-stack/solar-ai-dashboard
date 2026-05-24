@@ -2,144 +2,341 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import joblib
-import os
 import numpy as np
 
-# -----------------------------
-# إعداد الصفحة
-# -----------------------------
+# =============================
+# PAGE CONFIG
+# =============================
 
-st.set_page_config(page_title="Solar Dashboard", layout="wide")
-st.title("⚡ Solar Energy Monitoring Dashboard")
+st.set_page_config(
+    page_title="AI Solar Monitoring Dashboard",
+    layout="wide"
+)
 
-# -----------------------------
-# تحميل الملف
-# -----------------------------
+st.title("⚡ AI Solar Energy Monitoring Dashboard")
+st.markdown("### Predictive Fault Detection System")
 
-file = st.file_uploader("Upload CSV File", type=["csv"])
+# =============================
+# FILE UPLOAD
+# =============================
+
+file = st.file_uploader(
+    "📂 Upload CSV File",
+    type=["csv"]
+)
+
+# =============================
+# LOAD DATA
+# =============================
 
 if file:
+
     data = pd.read_csv(file)
 
-    st.success("Data Loaded Successfully ✅")
+    st.success("✅ Dataset Loaded Successfully")
 
-    # -----------------------------
-    # تنظيف البيانات + Feature Engineering
-    # -----------------------------
+    # =============================
+    # CREATE SEQUENCE FEATURES
+    # =============================
 
-    if "Power_W" in data.columns and "Ideal_Power_W" in data.columns:
-        data["Efficiency"] = data["Power_W"] / data["Ideal_Power_W"]
+    sequence_cols = [
+        "V_PV",
+        "V_Batt",
+        "Amp",
+        "Power_W",
+        "Temp_C",
+        "UV_Actual"
+    ]
 
-    data.replace([np.inf, -np.inf], np.nan, inplace=True)
-    data.dropna(inplace=True)
+    for col in sequence_cols:
 
-    # -----------------------------
-    # الفلاتر
-    # -----------------------------
+        data[f"{col}_prev1"] = data[col].shift(1)
+        data[f"{col}_prev2"] = data[col].shift(2)
 
-    st.sidebar.header("Filters")
+        data[f"{col}_diff1"] = (
+            data[col] - data[f"{col}_prev1"]
+        )
+
+        data[f"{col}_avg3"] = (
+            data[col].rolling(3).mean()
+        )
+
+    data = data.dropna()
+
+    # =============================
+    # SIDEBAR
+    # =============================
+
+    st.sidebar.title("⚙️ Dashboard Filters")
 
     if "Label" in data.columns:
+
         fault_filter = st.sidebar.multiselect(
             "Select Fault Type",
             options=data["Label"].unique(),
             default=data["Label"].unique()
         )
-        data = data[data["Label"].isin(fault_filter)]
 
-    # -----------------------------
+        data = data[
+            data["Label"].isin(fault_filter)
+        ]
+
+    # =============================
     # KPIs
-    # -----------------------------
+    # =============================
+
+    st.subheader("📌 System KPIs")
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Avg Power", f"{data['Power_W'].mean():.2f} W")
-    col2.metric("Max Power", f"{data['Power_W'].max():.2f} W")
-    col3.metric("Avg Battery", f"{data['V_Batt'].mean():.2f} V")
-    col4.metric("Avg Dust", f"{data['Dust_Ratio'].mean():.2f} %")
+    col1.metric(
+        "⚡ Avg Power",
+        f"{data['Power_W'].mean():.2f} W"
+    )
 
-    # -----------------------------
-    # الرسومات
-    # -----------------------------
+    col2.metric(
+        "🔋 Avg Battery",
+        f"{data['V_Batt'].mean():.2f} V"
+    )
 
-    st.subheader("📊 Power vs Ideal Power")
-    fig1 = px.line(data, y=["Power_W", "Ideal_Power_W"])
-    st.plotly_chart(fig1, use_container_width=True)
+    col3.metric(
+        "🌡️ Avg Temp",
+        f"{data['Temp_C'].mean():.2f} °C"
+    )
+
+    col4.metric(
+        "🧹 Avg Dust",
+        f"{data['Dust_Ratio'].mean():.2f} %"
+    )
+
+    # =============================
+    # POWER ANALYSIS
+    # =============================
+
+    st.subheader("📈 Power Analysis")
+
+    fig1 = px.line(
+        data,
+        y=["Power_W", "Ideal_Power_W"],
+        title="Actual vs Ideal Power"
+    )
+
+    st.plotly_chart(
+        fig1,
+        use_container_width=True
+    )
+
+    # =============================
+    # FAULT DISTRIBUTION
+    # =============================
 
     st.subheader("🚨 Fault Distribution")
-    if "Label" in data.columns:
-        fig2 = px.pie(data, names="Label")
-        st.plotly_chart(fig2, use_container_width=True)
+
+    fig2 = px.pie(
+        data,
+        names="Label",
+        title="Detected Fault Types"
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
+
+    # =============================
+    # TEMP VS POWER
+    # =============================
 
     st.subheader("🌡️ Temperature vs Power")
-    fig3 = px.scatter(data, x="Temp_C", y="Power_W", color="Label")
-    st.plotly_chart(fig3, use_container_width=True)
 
-    st.subheader("☀️ UV Ideal vs Actual")
-    fig4 = px.line(data, y=["UV_Ideal", "UV_Actual"])
-    st.plotly_chart(fig4, use_container_width=True)
+    fig3 = px.scatter(
+        data,
+        x="Temp_C",
+        y="Power_W",
+        color="Label",
+        title="Temperature Effect on Power"
+    )
 
-    st.subheader("🔋 Battery Status")
+    st.plotly_chart(
+        fig3,
+        use_container_width=True
+    )
+
+    # =============================
+    # UV ANALYSIS
+    # =============================
+
+    st.subheader("☀️ UV Analysis")
+
+    fig4 = px.line(
+        data,
+        y=["UV_Ideal", "UV_Actual"],
+        title="UV Ideal vs Actual"
+    )
+
+    st.plotly_chart(
+        fig4,
+        use_container_width=True
+    )
+
+    # =============================
+    # BATTERY STATUS
+    # =============================
+
     if "Battery_Alert" in data.columns:
-        fig5 = px.histogram(data, x="Battery_Alert", color="Battery_Alert")
-        st.plotly_chart(fig5, use_container_width=True)
 
-    # -----------------------------
-    # Prediction Section
-    # -----------------------------
+        st.subheader("🔋 Battery Status")
 
-    st.subheader("🤖 Predict Fault")
+        fig5 = px.histogram(
+            data,
+            x="Battery_Alert",
+            color="Battery_Alert"
+        )
+
+        st.plotly_chart(
+            fig5,
+            use_container_width=True
+        )
+
+    # =============================
+    # SEQUENCE ANALYSIS
+    # =============================
+
+    st.subheader("📉 Sequential Trend Analysis")
+
+    fig6 = px.line(
+        data,
+        y=[
+            "Power_W",
+            "Power_W_avg3"
+        ],
+        title="Power Trend & Moving Average"
+    )
+
+    st.plotly_chart(
+        fig6,
+        use_container_width=True
+    )
+
+    # =============================
+    # PREDICTION SYSTEM
+    # =============================
+
+    st.subheader("🤖 AI Fault Prediction")
 
     try:
-        # تحميل الموديل
-        if os.path.exists("rf_predictor.pkl"):
-            model = joblib.load("rf_predictor.pkl")
-        else:
-            st.error("❌ Model file not found! Upload rf_predictor.pkl to GitHub")
-            st.stop()
+
+        model = joblib.load("rf_predictor.pkl")
+
+        st.success("✅ AI Model Loaded")
 
         input_data = {}
 
         features = [
-            "Latitude","V_PV","V_Batt","Amp","Power_W",
-            "Ideal_Power_W","Temp_C","UV_Ideal","UV_Actual",
-            "Dust_Ratio","V_Diff","SOC_Percentage"
+
+            # Original Features
+            "Latitude",
+            "V_PV",
+            "V_Batt",
+            "Amp",
+            "Power_W",
+            "Ideal_Power_W",
+            "Temp_C",
+            "UV_Ideal",
+            "UV_Actual",
+            "Dust_Ratio",
+            "V_Diff",
+            "SOC_Percentage",
+
+            # Sequence Features
+            "V_PV_prev1",
+            "V_PV_prev2",
+            "V_PV_diff1",
+            "V_PV_avg3",
+
+            "V_Batt_prev1",
+            "V_Batt_prev2",
+            "V_Batt_diff1",
+            "V_Batt_avg3",
+
+            "Amp_prev1",
+            "Amp_prev2",
+            "Amp_diff1",
+            "Amp_avg3",
+
+            "Power_W_prev1",
+            "Power_W_prev2",
+            "Power_W_diff1",
+            "Power_W_avg3",
+
+            "Temp_C_prev1",
+            "Temp_C_prev2",
+            "Temp_C_diff1",
+            "Temp_C_avg3",
+
+            "UV_Actual_prev1",
+            "UV_Actual_prev2",
+            "UV_Actual_diff1",
+            "UV_Actual_avg3"
         ]
 
+        st.markdown("### Enter Live Sensor Readings")
 
-    
         cols = st.columns(3)
 
         for i, feature in enumerate(features):
-            if feature in data.columns:
-                default_val = float(data[feature].mean())
-            else:
-                default_val = 0.0
 
             input_data[feature] = cols[i % 3].number_input(
-                feature, value=default_val
+                feature,
+                value=float(data[feature].mean())
             )
 
-        if st.button("Predict"):
+        # =============================
+        # PREDICT BUTTON
+        # =============================
+
+        if st.button("🔍 Predict Fault"):
+
             input_df = pd.DataFrame([input_data])
 
             prediction = model.predict(input_df)[0]
 
-            # Confidence
-            if hasattr(model, "predict_proba"):
-                confidence = np.max(model.predict_proba(input_df)) * 100
-                st.success(f"Prediction: {prediction}")
-                st.info(f"Confidence: {confidence:.2f}%")
-            else:
-                st.success(f"Prediction: {prediction}")
+            st.error(
+                f"⚠️ Predicted Fault Type: {prediction}"
+            )
 
-            # Smart Alert
-            if prediction != "Normal":
-                st.error("⚠️ Warning: Potential Fault Detected!")
+            # =============================
+            # RISK ANALYSIS
+            # =============================
+
+            if prediction == "Normal":
+
+                st.success(
+                    "✅ System Operating Normally"
+                )
+
+            else:
+
+                st.warning(
+                    "⚠️ Potential Fault Detected!"
+                )
+
+                st.info(
+                    "📌 AI detected abnormal sequential behavior in the system."
+                )
 
     except Exception as e:
+
         st.error("❌ Error in prediction system")
-        st.write(e)
+
+        st.exception(e)
+
+# =============================
+# NO FILE
+# =============================
 
 else:
-    st.info("Please upload a CSV file to start.")
+
+    st.info(
+        "📂 Please upload a CSV dataset to start."
+    )

@@ -103,7 +103,7 @@ if file:
         features = [
             "Latitude","V_PV","V_Batt","Amp","Power_W",
             "Ideal_Power_W","Temp_C","UV_Ideal","UV_Actual",
-            "Dust_Ratio","V_Diff","SOC_Percentage","Efficiency"
+            "Dust_Ratio","V_Diff","SOC_Percentage"
         ]
 
         cols = st.columns(3)
